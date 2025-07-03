@@ -1,109 +1,176 @@
-# Frontend - Gestion de Documents
+# Frontend EFREI - Gestion de Documents
 
-Application Next.js 15 pour la gestion de documents avec authentification.
+Frontend Next.js 15 sécurisé pour l'application de gestion de documents EFREI.
 
-## Technologies utilisées
+## 🚀 Fonctionnalités
+
+- **Authentification sécurisée** avec JWT
+- **Gestion des rôles** (ADMIN, USER)
+- **Interface moderne** avec Tailwind CSS
+- **Protection des routes** automatique
+- **Notifications** en temps réel
+- **Gestion des documents** (CRUD)
+
+## 🛠️ Technologies
 
 - **Next.js 15** - Framework React
 - **TypeScript** - Typage statique
 - **Tailwind CSS** - Styling
+- **Axios** - Client HTTP
 - **React Hook Form** - Gestion des formulaires
 - **Zod** - Validation des données
-- **Axios** - Client HTTP
-- **Lucide React** - Icônes
-- **Radix UI** - Composants UI
 
-## Fonctionnalités
+## 📦 Installation
 
-- ✅ Authentification (connexion/inscription)
-- ✅ Gestion des documents (upload, visualisation, suppression)
-- ✅ Interface responsive
-- ✅ Gestion des rôles (ADMIN/USER)
-- ✅ Upload de fichiers
-
-## Développement local
-
-### Prérequis
-
-- Node.js 22
-- Yarn
-
-### Installation
+1. **Installer les dépendances :**
 
 ```bash
-# Installer les dépendances
+cd frontend
 yarn install
+```
 
-# Lancer en mode développement
+2. **Configurer l'environnement :**
+   Créer un fichier `.env.local` :
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+
+3. **Démarrer le serveur de développement :**
+
+```bash
 yarn dev
 ```
 
-L'application sera accessible sur `http://localhost:3001`
+L'application sera accessible sur `http://localhost:3000`
 
-### Variables d'environnement
+## 🔐 Sécurité
 
-Créez un fichier `.env.local` :
+### Authentification
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3000
-```
+- **JWT Tokens** stockés dans localStorage
+- **Intercepteurs Axios** pour ajouter automatiquement les tokens
+- **Redirection automatique** vers `/login` si non authentifié
+- **Gestion des erreurs 401** avec déconnexion automatique
 
-## Scripts disponibles
+### Protection des Routes
 
-```bash
-yarn dev          # Développement
-yarn build        # Build de production
-yarn start        # Démarrer en production
-yarn lint         # Linter
-```
+- **Composant `ProtectedRoute`** pour protéger les pages
+- **Vérification des rôles** pour l'accès aux fonctionnalités
+- **Loading states** pendant la vérification d'authentification
 
-## Structure du projet
+### Headers de Sécurité
+
+- **X-Frame-Options: DENY**
+- **X-Content-Type-Options: nosniff**
+- **Referrer-Policy: origin-when-cross-origin**
+
+## 📁 Structure du Projet
 
 ```
 src/
-├── app/                 # Pages Next.js 13+ (App Router)
-│   ├── dashboard/       # Page dashboard
-│   ├── login/          # Page de connexion
-│   ├── register/       # Page d'inscription
-│   └── layout.tsx      # Layout principal
-├── components/         # Composants réutilisables
-│   └── ui/            # Composants UI de base
-├── contexts/          # Contextes React
-├── lib/               # Utilitaires et services
-└── types/             # Types TypeScript
+├── app/                    # Pages Next.js 13+
+│   ├── dashboard/         # Dashboard protégé
+│   ├── login/            # Page de connexion
+│   ├── register/         # Page d'inscription
+│   └── layout.tsx        # Layout principal
+├── components/
+│   ├── ui/               # Composants UI réutilisables
+│   │   ├── Button.tsx
+│   │   ├── Input.tsx
+│   │   └── Toaster.tsx
+│   └── ProtectedRoute.tsx # Protection des routes
+├── contexts/
+│   └── AuthContext.tsx   # Contexte d'authentification
+├── lib/
+│   └── api.ts           # Service API sécurisé
+└── types/
+    └── index.ts         # Types TypeScript
 ```
 
-## Déploiement
+## 🔧 Configuration
+
+### API Service
+
+Le service API (`src/lib/api.ts`) gère :
+
+- **Configuration Axios** avec base URL
+- **Intercepteurs** pour l'authentification
+- **Gestion des erreurs** automatique
+- **Types TypeScript** pour toutes les requêtes
+
+### Contexte d'Authentification
+
+Le contexte (`src/contexts/AuthContext.tsx`) fournit :
+
+- **État utilisateur** global
+- **Fonctions de login/logout**
+- **Persistance** des données d'authentification
+- **Vérification** automatique du token
+
+## 🚀 Déploiement
+
+### Production
+
+```bash
+yarn build
+yarn start
+```
 
 ### Docker
 
 ```bash
-# Build de l'image
-docker build -t frontend .
-
-# Lancer le conteneur
-docker run -p 3001:3000 frontend
+docker build -t efrei-frontend .
+docker run -p 3000:3000 efrei-frontend
 ```
 
-### Avec docker-compose
+## 🔗 Connexion au Backend
 
-```bash
-# Lancer tous les services
-docker-compose up -d
+Le frontend se connecte au backend NestJS sur le port 4000 avec :
 
-# Frontend accessible sur http://localhost:3001
-```
+- **URL configurable** via `NEXT_PUBLIC_API_URL`
+- **CORS** géré par le backend
+- **Authentification JWT** sécurisée
+- **Gestion des erreurs** robuste
 
-## API Backend
+## 📝 API Endpoints Utilisés
 
-Le frontend communique avec l'API NestJS sur le port 3000. Assurez-vous que le backend est démarré avant de lancer le frontend.
+- `POST /auth/login` - Connexion
+- `POST /auth/register` - Inscription
+- `GET /auth/me` - Informations utilisateur
+- `GET /documents` - Liste des documents
+- `POST /documents` - Créer un document
+- `DELETE /documents/:id` - Supprimer un document
 
-## Tests
+## 🎨 Interface Utilisateur
 
-```bash
-# Tests unitaires
-yarn test
+- **Design responsive** avec Tailwind CSS
+- **Composants réutilisables** et accessibles
+- **Notifications toast** pour le feedback utilisateur
+- **Loading states** pour une meilleure UX
+- **Gestion d'erreurs** intuitive
 
-# Tests e2e
-yarn test:e2e
-```
+## 🔒 Bonnes Pratiques de Sécurité
+
+1. **Validation côté client** avec Zod
+2. **Sanitisation** des données d'entrée
+3. **Gestion sécurisée** des tokens JWT
+4. **Protection CSRF** via headers
+5. **Redirection sécurisée** après authentification
+6. **Gestion des sessions** côté client
+
+## 🐛 Débogage
+
+### Erreurs Courantes
+
+- **CORS** : Vérifier que le backend autorise `localhost:3000`
+- **JWT** : Vérifier la validité du token
+- **API** : Vérifier que le backend est démarré sur le port 4000
+
+### Logs
+
+Les erreurs sont affichées dans :
+
+- **Console navigateur** pour les erreurs client
+- **Notifications toast** pour les erreurs utilisateur
+- **Console serveur** pour les erreurs Next.js

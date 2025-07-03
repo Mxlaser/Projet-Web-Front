@@ -1,13 +1,13 @@
-import { AuthProvider } from '@/contexts/AuthContext';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
+import { Providers } from "@/components/Providers";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Projet Web - Gestion de Documents',
-  description: 'Application de gestion de documents avec authentification',
+  title: "EFREI - Secure Docs",
+  description: "Plateforme sécurisée de gestion documentaire",
 };
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -1,51 +1,36 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { useAuth } from '@/contexts/AuthContext';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-const registerSchema = z
-  .object({
-    fullName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-    email: z.string().email('Email invalide'),
-    password: z
-      .string()
-      .min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Les mots de passe ne correspondent pas',
-    path: ['confirmPassword'],
-  });
-
-type RegisterForm = z.infer<typeof registerSchema>;
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { useToaster } from "@/components/ui/Toaster";
+import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function RegisterPage() {
-  const [error, setError] = useState('');
-  const { register: registerUser } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+  const { addToast } = useToaster();
   const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterForm>({
-    resolver: zodResolver(registerSchema),
-  });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const onSubmit = async (data: RegisterForm) => {
     try {
-      setError('');
-      await registerUser(data.email, data.password, data.fullName);
-      router.push('/dashboard');
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l\'inscription');
+      await register(email, password, fullName);
+      addToast("Inscription réussie !", "success");
+      router.push("/dashboard");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Erreur lors de l'inscription";
+      addToast(errorMessage, "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,55 +41,53 @@ export default function RegisterPage() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Créer un compte
           </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Ou{" "}
+            <Link
+              href="/login"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              connectez-vous à votre compte existant
+            </Link>
+          </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4">
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <Input
-                {...register('fullName')}
                 type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 placeholder="Nom complet"
-                error={errors.fullName?.message}
+                required
+                className="mb-4"
               />
             </div>
             <div>
               <Input
-                {...register('email')}
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Adresse email"
-                error={errors.email?.message}
+                required
+                className="mb-4"
               />
             </div>
             <div>
               <Input
-                {...register('password')}
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mot de passe"
-                error={errors.password?.message}
-              />
-            </div>
-            <div>
-              <Input
-                {...register('confirmPassword')}
-                type="password"
-                placeholder="Confirmer le mot de passe"
-                error={errors.confirmPassword?.message}
+                required
               />
             </div>
           </div>
 
-          {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
-          )}
-
-          <Button type="submit" className="w-full" loading={isSubmitting}>
-            S&apos;inscrire
-          </Button>
-
-          <div className="text-center">
-            <Link href="/login" className="text-blue-600 hover:text-blue-500">
-              Déjà un compte ? Se connecter
-            </Link>
+          <div>
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? "Inscription..." : "S'inscrire"}
+            </Button>
           </div>
         </form>
       </div>

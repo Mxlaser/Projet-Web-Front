@@ -1,34 +1,34 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/contexts/AuthContext';
-import { apiService } from '@/lib/api';
-import { Document } from '@/types';
-import { Calendar, FileText, LogOut, Trash2, Upload, User } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { Button } from "@/components/ui/Button";
+import { useToaster } from "@/components/ui/Toaster";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiService } from "@/lib/api";
+import { Document } from "@/types";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+  const { addToast } = useToaster();
   const router = useRouter();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
-      return;
+    if (user) {
+      loadDocuments();
     }
-    loadDocuments();
-  }, [user, router]);
+  }, [user]);
 
   const loadDocuments = async () => {
     try {
       const docs = await apiService.getDocuments();
       setDocuments(docs);
-    } catch (error) {
-      console.error('Erreur lors du chargement des documents:', error);
+    } catch (error: unknown) {
+      console.log(error);
+      addToast("Erreur lors du chargement des documents", "error");
     } finally {
       setLoading(false);
     }
@@ -36,168 +36,115 @@ export default function DashboardPage() {
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push("/login");
+    addToast("Déconnexion réussie", "success");
   };
-
-  const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('title', file.name);
-      formData.append('description', `Document uploadé: ${file.name}`);
-      formData.append('file', file);
-
-      await apiService.createDocument({
-        title: file.name,
-        description: `Document uploadé: ${file.name}`,
-        file,
-      });
-
-      await loadDocuments();
-    } catch (error) {
-      console.error("Erreur lors de l'upload:", error);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDeleteDocument = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce document ?')) return;
-
-    try {
-      await apiService.deleteDocument(id);
-      await loadDocuments();
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <FileText className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">
-                Gestion de Documents
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center text-sm text-gray-700">
-                <User className="h-4 w-4 mr-2" />
-                {user?.fullName}
+    <ProtectedRoute>
+      {user && (
+        <div className="min-h-screen bg-gray-50">
+          {/* Header */}
+          <header className="bg-white shadow">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center py-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    Dashboard
+                  </h1>
+                  <p className="text-gray-600">
+                    Bienvenue, {user.fullName} ({user.role})
+                  </p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-500">{user.email}</span>
+                  <Button onClick={handleLogout} variant="outline">
+                    Se déconnecter
+                  </Button>
+                </div>
               </div>
-              <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Déconnexion
-              </Button>
             </div>
-          </div>
-        </div>
-      </header>
+          </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Upload Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">
-              Ajouter un document
-            </h2>
-            <div className="flex items-center space-x-4">
-              <input
-                type="file"
-                id="file-upload"
-                className="hidden"
-                onChange={handleFileUpload}
-                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-              />
-              <label htmlFor="file-upload">
+          {/* Main Content */}
+          <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div className="px-4 py-6 sm:px-0">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Mes Documents
+                </h2>
                 <Button
-                  variant="outline"
-                  className="cursor-pointer"
-                  loading={uploading}
+                  onClick={() => addToast("Fonctionnalité à venir", "info")}
                 >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Choisir un fichier
+                  Ajouter un document
                 </Button>
-              </label>
-            </div>
-          </div>
-        </div>
+              </div>
 
-        {/* Documents List */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200">
-            {documents.map((doc) => (
-              <li key={doc.id} className="px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <FileText className="h-5 w-5 text-gray-400 mr-3" />
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900">
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">
+                    Chargement des documents...
+                  </p>
+                </div>
+              ) : documents.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 mb-4">
+                    <svg
+                      className="mx-auto h-12 w-12"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Aucun document
+                  </h3>
+                  <p className="text-gray-500">
+                    Commencez par ajouter votre premier document.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="bg-white rounded-lg shadow p-6"
+                    >
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
                         {doc.title}
                       </h3>
-                      <p className="text-sm text-gray-500">{doc.description}</p>
-                      <div className="flex items-center text-xs text-gray-400 mt-1">
-                        <User className="h-3 w-3 mr-1" />
-                        {doc.user.fullName}
-                        <Calendar className="h-3 w-3 ml-3 mr-1" />
-                        {new Date(doc.createdAt).toLocaleDateString('fr-FR')}
+                      <p className="text-gray-600 mb-4">{doc.description}</p>
+                      <div className="flex justify-between items-center text-sm text-gray-500">
+                        <span>
+                          Créé le{" "}
+                          {new Date(doc.createdAt).toLocaleDateString("fr-FR")}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            addToast("Fonctionnalité à venir", "info")
+                          }
+                        >
+                          Voir
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <a
-                      href={doc.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-500 text-sm"
-                    >
-                      Voir
-                    </a>
-                    {(user?.role === 'ADMIN' || user?.id === doc.userId) && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteDocument(doc.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  ))}
                 </div>
-              </li>
-            ))}
-          </ul>
-          {documents.length === 0 && (
-            <div className="text-center py-12">
-              <FileText className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                Aucun document
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Commencez par ajouter votre premier document.
-              </p>
+              )}
             </div>
-          )}
+          </main>
         </div>
-      </main>
-    </div>
+      )}
+    </ProtectedRoute>
   );
 }
