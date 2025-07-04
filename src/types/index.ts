@@ -29,7 +29,14 @@ export interface AuthResponse {
 export interface CreateDocumentInput {
   title: string;
   description: string;
-  file: File;
+  fileUrl: string;
+}
+
+export interface UpdateDocumentInput {
+  id: string;
+  title?: string;
+  description?: string;
+  fileUrl?: string;
 }
 
 export interface ApiError {

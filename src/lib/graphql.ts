@@ -21,28 +21,26 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
-const errorLink = onError(
-  ({ graphQLErrors, networkError, operation, forward }) => {
-    if (graphQLErrors) {
-      graphQLErrors.forEach(({ message, locations, path }) => {
-        console.error(
-          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-        );
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  if (graphQLErrors) {
+    graphQLErrors.forEach(({ message, locations, path }) => {
+      console.error(
+        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+      );
 
-        // Handle authentication errors
-        if (message.includes("Unauthorized") || message.includes("Forbidden")) {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("user");
-          window.location.href = "/login";
-        }
-      });
-    }
-
-    if (networkError) {
-      console.error(`[Network error]: ${networkError}`);
-    }
+      // Handle authentication errors
+      if (message.includes("Unauthorized") || message.includes("Forbidden")) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
+    });
   }
-);
+
+  if (networkError) {
+    console.error(`[Network error]: ${networkError}`);
+  }
+});
 
 export const client = new ApolloClient({
   link: from([errorLink, authLink, httpLink]),

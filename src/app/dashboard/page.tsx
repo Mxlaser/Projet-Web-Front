@@ -1,44 +1,49 @@
 "use client";
 
+import { CreateDocumentModal } from "@/components/CreateDocumentModal";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/Button";
 import { useToaster } from "@/components/ui/Toaster";
 import { useAuth } from "@/contexts/AuthContext";
-import { apiService } from "@/lib/api";
+import { useMyDocuments } from "@/lib/graphql-service";
 import { Document } from "@/types";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
   const { addToast } = useToaster();
   const router = useRouter();
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, error, refetch } = useMyDocuments();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      loadDocuments();
-    }
-  }, [user]);
+  // Mémoiser les documents pour éviter les re-rendus
+  const documents = useMemo(() => data?.myDocuments || [], [data?.myDocuments]);
 
-  const loadDocuments = async () => {
-    try {
-      const docs = await apiService.getDocuments();
-      setDocuments(docs);
-    } catch (error: unknown) {
-      console.log(error);
-      addToast("Erreur lors du chargement des documents", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
+  // Mémoiser les callbacks pour éviter les re-rendus
+  const handleLogout = useCallback(() => {
     logout();
     router.push("/login");
     addToast("Déconnexion réussie", "success");
-  };
+  }, [logout, router, addToast]);
+
+  const handleCreateSuccess = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  const handleOpenCreateModal = useCallback(() => {
+    setIsCreateModalOpen(true);
+  }, []);
+
+  const handleCloseCreateModal = useCallback(() => {
+    setIsCreateModalOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (error) {
+      addToast("Erreur lors du chargement des documents", "error");
+    }
+  }, [error, addToast]);
 
   return (
     <ProtectedRoute>
@@ -73,9 +78,7 @@ export default function DashboardPage() {
                 <h2 className="text-2xl font-bold text-gray-900">
                   Mes Documents
                 </h2>
-                <Button
-                  onClick={() => addToast("Fonctionnalité à venir", "info")}
-                >
+                <Button onClick={handleOpenCreateModal}>
                   Ajouter un document
                 </Button>
               </div>
@@ -113,7 +116,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {documents.map((doc) => (
+                  {documents.map((doc: Document) => (
                     <div
                       key={doc.id}
                       className="bg-white rounded-lg shadow p-6"
@@ -143,6 +146,13 @@ export default function DashboardPage() {
               )}
             </div>
           </main>
+
+          {/* Create Document Modal */}
+          <CreateDocumentModal
+            isOpen={isCreateModalOpen}
+            onClose={handleCloseCreateModal}
+            onSuccess={handleCreateSuccess}
+          />
         </div>
       )}
     </ProtectedRoute>

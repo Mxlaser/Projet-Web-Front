@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToaster } from "@/components/ui/Toaster";
 import { useAuth } from "@/contexts/AuthContext";
-import { AxiosError } from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 // import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const { addToast } = useToaster();
-  // const router = useRouter();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,12 +24,11 @@ export default function LoginPage() {
     try {
       await login(email, password);
       addToast("Connexion réussie !", "success");
-      // router.push("/dashboard");
+      router.replace("/dashboard");
     } catch (error: unknown) {
-      console.log(error);
+      console.error("Erreur de connexion:", error);
       addToast(
-        (error as AxiosError<{ message: string }>)?.response?.data?.message ||
-          "Erreur lors de la connexion",
+        error instanceof Error ? error.message : "Erreur lors de la connexion",
         "error"
       );
     } finally {

@@ -2,8 +2,8 @@ import { gql } from "@apollo/client";
 
 // Authentification
 export const LOGIN_MUTATION = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
+  mutation Login($loginInput: LoginInput!) {
+    login(loginInput: $loginInput) {
       access_token
       user {
         id
@@ -17,8 +17,8 @@ export const LOGIN_MUTATION = gql`
 `;
 
 export const REGISTER_MUTATION = gql`
-  mutation Register($email: String!, $password: String!, $fullName: String!) {
-    register(email: $email, password: $password, fullName: $fullName) {
+  mutation Register($registerInput: RegisterInput!) {
+    register(registerInput: $registerInput) {
       access_token
       user {
         id
@@ -102,8 +102,8 @@ export const GET_ALL_DOCUMENTS = gql`
 `;
 
 export const CREATE_DOCUMENT = gql`
-  mutation CreateDocument($input: CreateDocumentInput!) {
-    createDocument(createDocumentInput: $input) {
+  mutation CreateDocument($createDocumentInput: CreateDocumentInput!) {
+    createDocument(createDocumentInput: $createDocumentInput) {
       id
       title
       description
@@ -116,8 +116,8 @@ export const CREATE_DOCUMENT = gql`
 `;
 
 export const UPDATE_DOCUMENT = gql`
-  mutation UpdateDocument($input: UpdateDocumentInput!) {
-    updateDocument(updateDocumentInput: $input) {
+  mutation UpdateDocument($updateDocumentInput: UpdateDocumentInput!) {
+    updateDocument(updateDocumentInput: $updateDocumentInput) {
       id
       title
       description

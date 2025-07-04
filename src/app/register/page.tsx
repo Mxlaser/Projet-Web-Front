@@ -24,7 +24,7 @@ export default function RegisterPage() {
     try {
       await register(email, password, fullName);
       addToast("Inscription réussie !", "success");
-      router.push("/dashboard");
+      router.replace("/dashboard");
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Erreur lors de l'inscription";
