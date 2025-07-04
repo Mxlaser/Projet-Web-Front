@@ -42,6 +42,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (error) {
       addToast("Erreur lors du chargement des documents", "error");
+      console.error(error);
     }
   }, [error, addToast]);
 

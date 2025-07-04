@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToaster } from "@/components/ui/Toaster";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCreateDocument } from "@/lib/graphql-service";
 import { CreateDocumentInput } from "@/types";
 import { useState } from "react";
@@ -23,11 +24,13 @@ export function CreateDocumentModal({
   const [fileUrl, setFileUrl] = useState("");
   const [createDocumentMutation, { loading }] = useCreateDocument();
   const { addToast } = useToaster();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title || !description || !fileUrl) {
+      console.log(user);
       addToast("Tous les champs sont requis", "error");
       return;
     }
@@ -36,7 +39,7 @@ export function CreateDocumentModal({
       const input: CreateDocumentInput = {
         title,
         description,
-        fileUrl,
+        fileUrl
       };
 
       await createDocumentMutation({
